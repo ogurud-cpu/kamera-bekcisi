@@ -44,8 +44,9 @@ jobs:
           python3 - <<'PY'
           import re
           lines = open('build.log', errors='replace').read().splitlines()
-          keep = [l for l in lines if re.match(r'^(e: |> |\* What went wrong|Execution failed|Could not|  > )', l) or 'error:' in l or 'ERROR' in l]
-          keep = keep[:120] or lines[-60:]
+          keep = [l for l in lines if re.match(r'^\s*(e: |> |\* What went wrong|Execution failed|Could not|Required by|Searched in)', l) or 'error:' in l or 'ERROR' in l or 'Could not find' in l or 'Required by' in l]
+          keep = [l for l in keep if not l.startswith('> Task')]
+          keep = keep[:150] or lines[-60:]
           msg = '%0A'.join(l.replace('%','%25').replace('\r','') for l in keep)
           print('::error title=Derleme hatasi::' + msg[:60000])
           PY
