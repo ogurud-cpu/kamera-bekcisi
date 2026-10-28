@@ -111,6 +111,8 @@ class MonitorService : Service() {
     private val downNotified = HashSet<Int>()
     private val tf = SimpleDateFormat("HH:mm:ss", Locale("tr"))
     private var alarmNotifId = 100
+    private var web: WebPanel? = null
+    private var tgCmd: TelegramCommands? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -190,9 +192,11 @@ class MonitorService : Service() {
             w.start()
         }
         Hub.log("İzleme başladı: ${cams.size} kamera")
-        Telegram.sendText("🟢 Kamera Bekçisi çalışıyor (${cams.size} kamera izleniyor).")
+        Telegram.sendText("🟢 Kamera Bekçisi çalışıyor (${cams.size} kamera izleniyor).\nAnlık görüntü için: foto")
 
         analyzer = Thread({ analyzeLoop() }, "analiz").also { it.start() }
+        web = WebPanel(this).also { it.start() }
+        tgCmd = TelegramCommands(this).also { it.start() }
     }
 
     private fun analyzeLoop() {
@@ -332,6 +336,8 @@ class MonitorService : Service() {
         workers.clear()
         analyzer?.interrupt()
         analyzer = null
+        web?.shutdown(); web = null
+        tgCmd?.shutdown(); tgCmd = null
         try { wakeLock?.release() } catch (_: Throwable) { }
         try { wifiLock?.release() } catch (_: Throwable) { }
         for (s in Hub.cams.values) { s.connected = false }

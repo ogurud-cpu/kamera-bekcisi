@@ -150,6 +150,16 @@ object Store {
     var sensitivity: Int
         get() = sp.getInt("sensitivity", 1)
         set(v) { sp.edit().putInt("sensitivity", v).apply() }
+    /** Uzaktan izleme paneli erişim kodu */
+    val webPin: String
+        get() {
+            var p = str("webPin")
+            if (p.isBlank()) {
+                p = (100000 + java.security.SecureRandom().nextInt(900000)).toString()
+                putStr("webPin", p)
+            }
+            return p
+        }
     var monitoring: Boolean
         get() = sp.getBoolean("monitoring", false)
         set(v) { sp.edit().putBoolean("monitoring", v).apply() }

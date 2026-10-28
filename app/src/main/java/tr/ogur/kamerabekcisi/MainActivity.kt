@@ -25,6 +25,12 @@ class MainActivity : Activity() {
     private lateinit var startBtn: Button
     private lateinit var grid: LinearLayout
     private lateinit var logView: TextView
+    private lateinit var remoteT: TextView
+
+    private fun panelUrl(): String {
+        val ip = Discovery.localIPv4() ?: "CIHAZ-IP"
+        return "http://$ip:8080/?k=${Store.webPin}"
+    }
     private val tiles = ArrayList<CamTileView>()
     private val handler = Handler(Looper.getMainLooper())
     private val tick = object : Runnable {
@@ -67,6 +73,14 @@ class MainActivity : Activity() {
         root.addView(sp, LinearLayout.LayoutParams(MATCH, WRAP))
 
         root.btn("Pil kısıtlamasını kaldır (sürekli çalışma için)") { askBattery() }
+
+        root.header("Uzaktan izleme")
+        remoteT = root.text("", 13f, false, Color.DKGRAY)
+        root.btn("Panel adresini kopyala") {
+            val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            cm.setPrimaryClip(android.content.ClipData.newPlainText("panel", panelUrl()))
+            toast("Kopyalandı")
+        }
 
         root.header("Kayıt")
         logView = root.text("", 12f, false, Color.DKGRAY)
@@ -149,6 +163,28 @@ class MainActivity : Activity() {
             t.invalidate()
         }
         logView.text = Hub.lastLogs(8).asReversed().joinToString("\n")
+        val tsIp = tailscaleIp()
+        remoteT.text = (if (Hub.running) "" else "(İzleme açıkken çalışır)\n") +
+            "• Telegram'dan bota \"foto\" yazın → anlık görüntüler gelir.\n" +
+            "• Canlı panel (ev Wi-Fi'ında): ${panelUrl()}\n" +
+            (if (tsIp != null) "• Dışarıdan (Tailscale): http://$tsIp:8080/?k=${Store.webPin}"
+             else "• Dışarıdan izlemek için bu cihaza ve kendi telefonunuza Tailscale kurup aynı hesapla giriş yapın; adres burada görünecek.")
+    }
+
+    private fun tailscaleIp(): String? {
+        try {
+            val ifs = java.net.NetworkInterface.getNetworkInterfaces() ?: return null
+            for (ni in ifs) {
+                for (a in ni.inetAddresses) {
+                    val h = a.hostAddress ?: continue
+                    if (a is java.net.Inet4Address && h.startsWith("100.")) {
+                        val second = h.split(".")[1].toIntOrNull() ?: continue
+                        if (second in 64..127) return h
+                    }
+                }
+            }
+        } catch (_: Exception) { }
+        return null
     }
 
     private fun toggle() {
