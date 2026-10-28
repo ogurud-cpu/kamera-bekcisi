@@ -14,7 +14,7 @@ android {
         versionCode = 1
         versionName = "0.1"
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+            abiFilters += listOf("arm64-v8a")
         }
     }
 
@@ -77,10 +77,8 @@ dependencies {
     implementation("org.bytedeco:javacv:1.5.10")
     implementation("org.bytedeco:javacpp:1.5.10")
     implementation("org.bytedeco:javacpp:1.5.10:android-arm64")
-    implementation("org.bytedeco:javacpp:1.5.10:android-arm")
     implementation("org.bytedeco:ffmpeg:6.1.1-1.5.10")
     implementation("org.bytedeco:ffmpeg:6.1.1-1.5.10:android-arm64")
-    implementation("org.bytedeco:ffmpeg:6.1.1-1.5.10:android-arm")
 
     // Yapay zeka (YOLO, ONNX Runtime)
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.19.2")
