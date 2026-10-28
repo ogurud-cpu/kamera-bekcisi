@@ -1,0 +1,45 @@
+name: APK Derle
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Yapay zeka modelini hazirla (YOLO11n -> ONNX)
+        run: |
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install ultralytics onnx onnxslim onnxruntime
+          yolo export model=yolo11n.pt format=onnx imgsz=480 opset=17 simplify=True
+          mkdir -p app/src/main/assets
+          cp yolo11n.onnx app/src/main/assets/yolo.onnx
+          ls -la app/src/main/assets
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: APK derle
+        run: gradle :app:assembleRelease --stacktrace --no-daemon
+
+      - name: APK dosyasini yeniden adlandir
+        run: cp app/build/outputs/apk/release/app-release.apk KameraBekcisi.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KameraBekcisi-apk
+          path: KameraBekcisi.apk
