@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -58,3 +61,10 @@ jobs:
         with:
           name: KameraBekcisi-apk
           path: KameraBekcisi.apk
+
+      - name: Indirme sayfasina koy (Releases)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v0.1.${{ github.run_number }}"
+          gh release create "$TAG" KameraBekcisi.apk --title "Kamera Bekçisi $TAG" --notes "Otomatik derleme" --latest
